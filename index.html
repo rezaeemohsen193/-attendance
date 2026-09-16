@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>حضور و غیاب</title>
+<style>
+body{font-family:-apple-system;direction:rtl;background:#f4f5f7;margin:0;padding:25px;text-align:center}
+.box{max-width:450px;margin:auto;background:white;padding:25px;border-radius:25px;box-shadow:0 5px 25px #ddd}
+h1{margin-bottom:10px}
+#clock{font-size:28px;font-weight:bold;margin:20px}
+button{width:48%;padding:20px;border:0;border-radius:18px;color:white;font-size:20px;font-weight:bold}
+.in{background:#159447}.out{background:#d93636}
+table{width:100%;margin-top:25px;border-collapse:collapse}
+td,th{padding:10px;border-bottom:1px solid #ddd}
+.total{font-size:22px;font-weight:bold;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>⏱️ حضور و غیاب</h1>
+<div id="clock"></div>
+
+<button class="in" onclick="enter()">🟢 ورود</button>
+<button class="out" onclick="exit()">🔴 خروج</button>
+
+<div class="total">مجموع هفته: <span id="total">0</span> ساعت</div>
+
+<table>
+<thead><tr><th>تاریخ</th><th>ورود</th><th>خروج</th><th>ساعت</th></tr></thead>
+<tbody id="list"></tbody>
+</table>
+</div>
+
+<script>
+let records=JSON.parse(localStorage.getItem("work")||"[]");
+
+function clock(){
+let d=new Date();
+document.getElementById("clock").innerText=d.toLocaleTimeString("fa-IR");
+}
+setInterval(clock,1000);clock();
+
+function enter(){
+let d=new Date();
+if(records.some(x=>x.in&&!x.out)){
+alert("هنوز خروج ثبت نشده!");
+return;
+}
+records.push({date:d.toLocaleDateString("fa-IR"),in:d.getTime(),out:null});
+save();
+alert("ورود ثبت شد ✅");
+}
+
+function exit(){
+let d=new Date();
+let x=records.find(x=>x.in&&!x.out);
+if(!x){alert("اول ورود را ثبت کن");return;}
+x.out=d.getTime();
+save();
+alert("خروج ثبت شد ✅");
+}
+
+function save(){
+localStorage.setItem("work",JSON.stringify(records));
+show();
+}
+
+function show(){
+let html="",total=0;
+records.forEach(x=>{
+let h=x.out?(x.out-x.in)/3600000:0;
+total+=h;
+html+=`<tr><td>${x.date}</td><td>${new Date(x.in).toLocaleTimeString("fa-IR")}</td><td>${x.out?new Date(x.out).toLocaleTimeString("fa-IR"):"—"}</td><td>${h.toFixed(2)}</td></tr>`;
+});
+document.getElementById("list").innerHTML=html;
+document.getElementById("total").innerText=total.toFixed(2);
+}
+show();
+</script>
+</body>
+</html>
